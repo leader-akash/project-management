@@ -18,6 +18,7 @@ import { Select } from "@/components/ui/select";
 import { formatApiError } from "@/lib/user-facing-error";
 import { projectsApi, usersApi } from "@/services/api";
 import { cn } from "@/lib/utils";
+import { isWorkspaceLead } from "@/lib/workspace";
 
 export function userId(u) {
   if (!u) return "";
@@ -26,6 +27,7 @@ export function userId(u) {
 
 export function canManageProjectTeam(currentUser, project) {
   if (!currentUser || !project?.owner) return false;
+  if (isWorkspaceLead(currentUser)) return true;
   const ownerId = userId(project.owner);
   if (ownerId && ownerId === userId(currentUser)) return true;
   const me = project.members?.find((m) => userId(m.user) === userId(currentUser));
@@ -273,7 +275,6 @@ export function AddPeopleModal({ currentUser, onError, onOpenChange, onProjectUp
                     >
                       <option value="member">Member</option>
                       <option value="manager">Manager</option>
-                      <option value="viewer">Viewer</option>
                     </Select>
                   </div>
                 </div>

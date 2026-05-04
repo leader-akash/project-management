@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 import { useAuthStore } from "@/store/auth-store";
 
 const schema = z
@@ -20,7 +21,8 @@ const schema = z
     name: z.string().min(2, "Name must be at least 2 characters."),
     email: z.string().email("Enter a valid email."),
     password: z.string().min(8, "Password must be at least 8 characters."),
-    confirmPassword: z.string().min(8, "Confirm password must be at least 8 characters.")
+    confirmPassword: z.string().min(8, "Confirm password must be at least 8 characters."),
+    role: z.enum(["member", "manager"])
   })
   .refine((values) => values.password === values.confirmPassword, {
     message: "Passwords do not match.",
@@ -37,7 +39,8 @@ export default function RegisterPage() {
       name: "",
       email: "",
       password: "",
-      confirmPassword: ""
+      confirmPassword: "",
+      role: "member"
     }
   });
 
@@ -52,9 +55,13 @@ export default function RegisterPage() {
   }, [isReady, router, user]);
 
   const onSubmit = async (values) => {
-    const { confirmPassword, ...payload } = values;
     try {
-      await register(payload);
+      await register({
+        name: values.name,
+        email: values.email,
+        password: values.password,
+        role: values.role
+      });
       router.replace("/dashboard");
     } catch (_error) {
       // The store exposes the error message for the form banner.
@@ -69,7 +76,10 @@ export default function RegisterPage() {
             <FolderKanban className="h-5 w-5" />
           </div>
           <CardTitle>Create your account</CardTitle>
-          <CardDescription>Join the workspace — access is per project (like Jira), not a global admin role.</CardDescription>
+          <CardDescription>
+            Choose member or project manager. The first person to register becomes the workspace admin. Admins and project managers
+            can create projects.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
@@ -83,6 +93,15 @@ export default function RegisterPage() {
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" autoComplete="email" {...form.register("email")} />
               {form.formState.errors.email && <p className="text-xs text-destructive">{form.formState.errors.email.message}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="role">Workspace role</Label>
+              <Select id="role" {...form.register("role")}>
+                <option value="member">Member</option>
+                <option value="manager">Project manager</option>
+              </Select>
+              <p className="text-xs text-muted-foreground">Project managers can create new projects; members join projects they are added to.</p>
+              {form.formState.errors.role && <p className="text-xs text-destructive">{form.formState.errors.role.message}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>

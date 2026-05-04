@@ -62,6 +62,10 @@ export const authApi = {
   me: () => request("/auth/me")
 };
 
+export const adminApi = {
+  overview: () => request("/admin/overview")
+};
+
 export const usersApi = {
   /**
    * @param {string | { search?: string; limit?: number }} [searchOrParams]

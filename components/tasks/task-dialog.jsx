@@ -21,7 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { PRIORITIES, TASK_COLUMNS } from "@/lib/constants";
-import { toDateInputValue } from "@/lib/utils";
+import { localDateInputValue, todayDateInputValue } from "@/lib/utils";
 
 function buildTaskSchema(columnIds) {
   const allowed = new Set(columnIds);
@@ -42,6 +42,13 @@ function buildTaskSchema(columnIds) {
           path: ["status"]
         });
       }
+      if (data.dueDate && data.dueDate < todayDateInputValue()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Due date cannot be in the past.",
+          path: ["dueDate"]
+        });
+      }
     });
 }
 
@@ -50,6 +57,7 @@ export function TaskDialog({
   activitiesLoading = false,
   columnTitleMap = {},
   comments,
+  currentUser,
   defaultStatus,
   issueLabel,
   isCommenting,
@@ -68,6 +76,15 @@ export function TaskDialog({
   const columnKey = columnIds.join("|");
   const schema = useMemo(() => buildTaskSchema(columnIds), [columnKey]);
 
+  const assigneeLockedToAdmin =
+    Boolean(task?.assignee) && task.assignee.role === "admin" && currentUser?.role !== "admin";
+
+  const assigneeChoices = useMemo(() => {
+    if (!users?.length) return [];
+    if (currentUser?.role === "admin") return users;
+    return users.filter((u) => u.role !== "admin");
+  }, [users, currentUser?.role]);
+
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -80,17 +97,26 @@ export function TaskDialog({
     }
   });
 
+  const overdueDueCleared = useMemo(() => {
+    if (!task?.dueDate) return false;
+    const raw = localDateInputValue(task.dueDate);
+    return Boolean(raw && raw < todayDateInputValue());
+  }, [task?.dueDate]);
+
   useEffect(() => {
     if (!isOpen) return;
     const fallbackStatus = task?.status || defaultStatus || columnIds[0] || "todo";
     const status = columnIds.includes(fallbackStatus) ? fallbackStatus : columnIds[0] || "todo";
+    const rawDue = task?.dueDate ? localDateInputValue(task.dueDate) : "";
+    const today = todayDateInputValue();
+    const dueDate = rawDue && rawDue < today ? "" : rawDue;
     form.reset({
       title: task?.title || "",
       description: task?.description || "",
       status,
       priority: task?.priority || "medium",
       assignee: task?.assignee?._id || "",
-      dueDate: toDateInputValue(task?.dueDate)
+      dueDate
     });
   }, [columnKey, defaultStatus, form, isOpen, task]);
 
@@ -158,18 +184,36 @@ export function TaskDialog({
             </div>
             <div className="space-y-2">
               <Label htmlFor="task-assignee">Assignee</Label>
-              <Select id="task-assignee" {...form.register("assignee")}>
-                <option value="">Unassigned</option>
-                {users.map((user) => (
-                  <option key={user._id} value={user._id}>
-                    {user.name}
-                  </option>
-                ))}
-              </Select>
+              {assigneeLockedToAdmin ? (
+                <>
+                  <p className="rounded-md border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+                    Assigned to <span className="font-medium text-foreground">{task.assignee.name}</span>. Only a workspace admin
+                    can change this assignment.
+                  </p>
+                  <input type="hidden" {...form.register("assignee")} />
+                </>
+              ) : (
+                <Select id="task-assignee" {...form.register("assignee")}>
+                  <option value="">Unassigned</option>
+                  {assigneeChoices.map((u) => (
+                    <option key={u._id} value={u._id}>
+                      {u.name}
+                    </option>
+                  ))}
+                </Select>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="task-due">Due date</Label>
-              <Input id="task-due" type="date" {...form.register("dueDate")} />
+              {overdueDueCleared ? (
+                <p className="mb-2 text-xs text-amber-700 dark:text-amber-500">
+                  This task had a due date in the past. Choose today or a future date, or leave empty.
+                </p>
+              ) : null}
+              <Input id="task-due" type="date" min={todayDateInputValue()} {...form.register("dueDate")} />
+              {form.formState.errors.dueDate && (
+                <p className="text-xs text-destructive">{form.formState.errors.dueDate.message}</p>
+              )}
             </div>
           </div>
 

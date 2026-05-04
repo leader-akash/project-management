@@ -8,6 +8,7 @@ import { CalendarDays, MessageSquare, MoreVertical } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { PRIORITIES } from "@/lib/constants";
 import { dueLabel } from "@/utils/date";
 
 const MENU_WIDTH = 176;
@@ -23,6 +24,11 @@ export function taskSortableId(task) {
   const raw = task?._id ?? task?.id;
   if (raw == null) return "";
   return typeof raw === "string" ? raw : raw.toString?.() ?? String(raw);
+}
+
+function priorityLabel(priority) {
+  const entry = PRIORITIES.find((p) => p.id === priority);
+  return entry?.label ?? priority;
 }
 
 export function TaskCardFace({ task, className, dimmed, projectKey }) {
@@ -46,7 +52,7 @@ export function TaskCardFace({ task, className, dimmed, projectKey }) {
       ) : null}
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <Badge variant={priorityTone[task.priority] || "secondary"}>{task.priority}</Badge>
+        <Badge variant={priorityTone[task.priority] || "secondary"}>{priorityLabel(task.priority)}</Badge>
         <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
           <CalendarDays className="h-3.5 w-3.5 shrink-0" />
           {dueLabel(task.dueDate)}

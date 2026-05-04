@@ -11,16 +11,14 @@ import { Textarea } from "@/components/ui/textarea";
 
 const schema = z.object({
   name: z.string().min(2, "Project name is required.").max(120),
-  key: z.string().max(12).optional(),
   description: z.string().max(1000).optional()
 });
 
-export function ProjectForm({ onSubmit, isSubmitting }) {
+export function ProjectForm({ onSubmit, isSubmitting, submitLabel = "Create project" }) {
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
       name: "",
-      key: "",
       description: ""
     }
   });
@@ -36,16 +34,10 @@ export function ProjectForm({ onSubmit, isSubmitting }) {
 
   return (
     <form className="space-y-4" onSubmit={form.handleSubmit(submit)}>
-      <div className="grid gap-4 sm:grid-cols-[1fr_120px]">
-        <div className="space-y-2">
-          <Label htmlFor="project-name">Name</Label>
-          <Input id="project-name" placeholder="Platform roadmap" {...form.register("name")} />
-          {form.formState.errors.name && <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>}
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="project-key">Key</Label>
-          <Input id="project-key" placeholder="PLAT" maxLength={12} {...form.register("key")} />
-        </div>
+      <div className="space-y-2">
+        <Label htmlFor="project-name">Name</Label>
+        <Input id="project-name" placeholder="Platform roadmap" {...form.register("name")} />
+        {form.formState.errors.name && <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>}
       </div>
       <div className="space-y-2">
         <Label htmlFor="project-description">Description</Label>
@@ -53,7 +45,7 @@ export function ProjectForm({ onSubmit, isSubmitting }) {
       </div>
       <Button type="submit" disabled={isSubmitting}>
         {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-        Create project
+        {submitLabel}
       </Button>
     </form>
   );

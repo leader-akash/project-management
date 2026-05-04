@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Archive, ArrowLeft, Columns3, Loader2, Plus, RefreshCcw, Trash2, UserPlus } from "lucide-react";
+import { ArrowLeft, Columns3, Loader2, Plus, RefreshCcw, Trash2, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { KanbanBoard } from "@/components/kanban/kanban-board";
 import { taskSortableId } from "@/components/kanban/task-card";
@@ -102,6 +102,8 @@ export default function ProjectClient({ projectId }) {
   const [activitiesLoading, setActivitiesLoading] = useState(false);
   const activityFetchSeq = useRef(0);
   const [peopleModalOpen, setPeopleModalOpen] = useState(false);
+  const [deleteProjectOpen, setDeleteProjectOpen] = useState(false);
+  const [deletingProject, setDeletingProject] = useState(false);
 
   useProjectSocket(projectId);
 
@@ -358,30 +360,19 @@ export default function ProjectClient({ projectId }) {
     }
   };
 
-  const toggleArchive = async () => {
+  const confirmDeleteProject = async () => {
     if (!activeProject) return;
+    setDeletingProject(true);
     setError("");
-    const nextStatus = activeProject.status === "active" ? "archived" : "active";
-    try {
-      const { project } = await projectsApi.update(activeProject._id, { status: nextStatus });
-      setActiveProject(project);
-      upsertProject(project);
-    } catch (apiError) {
-      setError(formatApiError(apiError));
-    }
-  };
-
-  const deleteProject = async () => {
-    if (!activeProject) return;
-    const confirmed = window.confirm(`Delete ${activeProject.name}? This cannot be undone.`);
-    if (!confirmed) return;
-
     try {
       await projectsApi.remove(activeProject._id);
       removeProject(activeProject._id);
+      setDeleteProjectOpen(false);
       router.replace("/dashboard");
     } catch (apiError) {
       setError(formatApiError(apiError));
+    } finally {
+      setDeletingProject(false);
     }
   };
 
@@ -459,11 +450,7 @@ export default function ProjectClient({ projectId }) {
               <RefreshCcw className="h-4 w-4" />
               Refresh
             </Button>
-            <Button type="button" variant="outline" onClick={toggleArchive}>
-              <Archive className="h-4 w-4" />
-              {activeProject.status === "active" ? "Archive" : "Activate"}
-            </Button>
-            <Button type="button" variant="destructive" onClick={deleteProject}>
+            <Button type="button" variant="destructive" onClick={() => setDeleteProjectOpen(true)}>
               <Trash2 className="h-4 w-4" />
               Delete
             </Button>
@@ -511,6 +498,7 @@ export default function ProjectClient({ projectId }) {
           activitiesLoading={activitiesLoading}
           columnTitleMap={columnTitleMap}
           comments={selectedComments}
+          currentUser={authUser}
           defaultStatus={defaultStatus}
           issueLabel={selectedIssueLabel}
           isCommenting={commenting}
@@ -537,6 +525,27 @@ export default function ProjectClient({ projectId }) {
             upsertProject(project);
           }}
         />
+
+        <Dialog open={deleteProjectOpen} onOpenChange={setDeleteProjectOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete project</DialogTitle>
+              <DialogDescription>
+                Delete <span className="font-medium text-foreground">{activeProject.name}</span>? This cannot be undone and removes
+                all tasks in this project.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setDeleteProjectOpen(false)} disabled={deletingProject}>
+                Cancel
+              </Button>
+              <Button type="button" variant="destructive" disabled={deletingProject} onClick={() => void confirmDeleteProject()}>
+                {deletingProject ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Delete project
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={addColumnOpen} onOpenChange={setAddColumnOpen}>
           <DialogContent>

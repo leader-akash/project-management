@@ -2,23 +2,25 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FolderKanban, LayoutDashboard, LogOut } from "lucide-react";
+import { FolderKanban, LayoutDashboard, LogOut, Shield } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { formatWorkspaceRole, isWorkspaceAdmin } from "@/lib/workspace";
 import { useAuthStore } from "@/store/auth-store";
 
-const navItems = [
-  { href: "/dashboard", label: "Projects", icon: LayoutDashboard }
-];
+const baseNavItems = [{ href: "/dashboard", label: "Projects", icon: LayoutDashboard }];
 
 export function AppShell({ children }) {
   const pathname = usePathname();
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
+  const navItems = isWorkspaceAdmin(user)
+    ? [...baseNavItems, { href: "/admin", label: "Admin", icon: Shield }]
+    : baseNavItems;
 
   const onLogout = () => {
     logout();
@@ -63,6 +65,9 @@ export function AppShell({ children }) {
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{user?.name}</p>
               <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
+              {user?.role ? (
+                <p className="truncate text-[11px] text-muted-foreground/80">{formatWorkspaceRole(user.role)}</p>
+              ) : null}
             </div>
           </div>
           <div className="flex items-center justify-between">
