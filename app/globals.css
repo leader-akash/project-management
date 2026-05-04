@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 210 33% 98%;
+  --foreground: 224 27% 14%;
+  --card: 0 0% 100%;
+  --card-foreground: 224 27% 14%;
+  --primary: 212 86% 48%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 160 28% 92%;
+  --secondary-foreground: 164 43% 18%;
+  --muted: 214 27% 93%;
+  --muted-foreground: 218 11% 42%;
+  --accent: 38 92% 92%;
+  --accent-foreground: 31 80% 24%;
+  --destructive: 0 73% 50%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 214 28% 86%;
+  --input: 214 28% 86%;
+  --ring: 212 86% 48%;
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: 222 23% 8%;
+  --foreground: 210 26% 94%;
+  --card: 224 22% 11%;
+  --card-foreground: 210 26% 94%;
+  --primary: 203 92% 58%;
+  --primary-foreground: 222 23% 8%;
+  --secondary: 170 20% 16%;
+  --secondary-foreground: 167 43% 82%;
+  --muted: 222 18% 15%;
+  --muted-foreground: 217 12% 68%;
+  --accent: 36 42% 18%;
+  --accent-foreground: 42 84% 78%;
+  --destructive: 0 72% 52%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 222 17% 20%;
+  --input: 222 17% 20%;
+  --ring: 203 92% 58%;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+html {
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
+  color: hsl(var(--foreground));
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.35);
+  border-radius: 999px;
+}
+
