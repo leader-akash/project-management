@@ -28,6 +28,7 @@ function boardCollisionDetection(args) {
 
 export function KanbanBoard({
   columns,
+  projectKey,
   tasks,
   onCreateTask,
   onMoveTask,
@@ -72,21 +73,24 @@ export function KanbanBoard({
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <div className="flex gap-4 overflow-x-auto pb-3">
+      <div className="min-w-0 max-w-full rounded-lg border border-border/60 bg-muted/10 p-2 sm:p-3">
+        <div className="flex gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-4 [&::-webkit-scrollbar]:hidden">
         {columns.map((column) => (
           <KanbanColumn
             key={column.id}
             column={column}
             columns={columns}
+            projectKey={projectKey}
             tasks={tasksByStatus[column.id] || []}
             onCreateTask={onCreateTask}
             onMoveTaskToColumn={onMoveTaskToColumn}
             onOpenTask={onOpenTask}
           />
         ))}
+        </div>
       </div>
       <DragOverlay dropAnimation={{ duration: 180, easing: "cubic-bezier(0.25, 1, 0.5, 1)" }}>
-        {activeTask ? <TaskCardDragPreview task={activeTask} /> : null}
+        {activeTask ? <TaskCardDragPreview task={activeTask} projectKey={projectKey} /> : null}
       </DragOverlay>
     </DndContext>
   );

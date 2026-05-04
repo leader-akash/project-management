@@ -25,11 +25,16 @@ export function taskSortableId(task) {
   return typeof raw === "string" ? raw : raw.toString?.() ?? String(raw);
 }
 
-export function TaskCardFace({ task, className, dimmed }) {
+export function TaskCardFace({ task, className, dimmed, projectKey }) {
   const reporterName = task.reporter?.name;
+  const issueLabel =
+    projectKey && task.issueNumber != null ? `${projectKey}-${task.issueNumber}`.toUpperCase() : null;
 
   return (
     <div className={cn("relative min-w-0 pr-9", className)}>
+      {issueLabel ? (
+        <p className="mb-1 font-mono text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{issueLabel}</p>
+      ) : null}
       <p className="line-clamp-2 text-sm font-medium">{task.title}</p>
       {reporterName ? (
         <p className="mt-1 text-[11px] text-muted-foreground">
@@ -68,14 +73,14 @@ export function TaskCardFace({ task, className, dimmed }) {
   );
 }
 
-export function TaskCardDragPreview({ task }) {
+export function TaskCardDragPreview({ task, projectKey }) {
   return (
     <div
       className={cn(
         "w-[min(100vw-2rem,18rem)] cursor-grabbing rounded-lg border bg-card p-3 text-left shadow-lg ring-2 ring-primary/25"
       )}
     >
-      <TaskCardFace task={task} className="pr-0" />
+      <TaskCardFace task={task} className="pr-0" projectKey={projectKey} />
     </div>
   );
 }
@@ -199,7 +204,7 @@ function TaskColumnMenu({ task, columns, onMoveToColumn }) {
   );
 }
 
-export function TaskCard({ task, columns, onOpen, onMoveToColumn }) {
+export function TaskCard({ task, columns, projectKey, onOpen, onMoveToColumn }) {
   const sortableId = taskSortableId(task);
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -238,7 +243,7 @@ export function TaskCard({ task, columns, onOpen, onMoveToColumn }) {
         }}
         className="w-full cursor-grab rounded-lg p-3 pb-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:cursor-grabbing"
       >
-        <TaskCardFace task={task} className="relative" dimmed={isDragging} />
+        <TaskCardFace task={task} className="relative" dimmed={isDragging} projectKey={projectKey} />
       </div>
 
       <div className="absolute right-1 top-1 z-10 flex items-start" onPointerDown={(event) => event.stopPropagation()}>

@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Archive, ArrowLeft, Columns3, Loader2, Plus, RefreshCcw, Trash2 } from "lucide-react";
+import { Archive, ArrowLeft, Columns3, Loader2, Plus, RefreshCcw, Trash2, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { KanbanBoard } from "@/components/kanban/kanban-board";
 import { taskSortableId } from "@/components/kanban/task-card";
 import { AppShell } from "@/components/layout/app-shell";
 import { ErrorBanner } from "@/components/common/error-banner";
 import { LoadingState } from "@/components/common/loading-state";
+import { AddPeopleModal, canManageProjectTeam } from "@/components/projects/add-people-modal";
 import { TaskDialog } from "@/components/tasks/task-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -100,6 +101,7 @@ export default function ProjectClient({ projectId }) {
   const [activitiesByTask, setActivitiesByTask] = useState({});
   const [activitiesLoading, setActivitiesLoading] = useState(false);
   const activityFetchSeq = useRef(0);
+  const [peopleModalOpen, setPeopleModalOpen] = useState(false);
 
   useProjectSocket(projectId);
 
@@ -108,6 +110,10 @@ export default function ProjectClient({ projectId }) {
   const columnTitleMap = useMemo(() => Object.fromEntries(boardColumns.map((column) => [column.id, column.title])), [boardColumns]);
   const selectedComments = selectedTask ? commentsByTask[selectedTask._id] || [] : [];
   const selectedActivities = selectedTask ? activitiesByTask[taskIdKey(selectedTask._id)] || [] : [];
+  const selectedIssueLabel = useMemo(() => {
+    if (!selectedTask || !activeProject?.key || selectedTask.issueNumber == null) return null;
+    return `${activeProject.key}-${selectedTask.issueNumber}`.toUpperCase();
+  }, [activeProject?.key, selectedTask]);
 
   const refreshActivities = useCallback(async (taskId) => {
     const key = taskIdKey(taskId);
@@ -426,11 +432,12 @@ export default function ProjectClient({ projectId }) {
   }
 
   const firstColumnId = boardColumns[0]?.id ?? "todo";
+  const canEditTeam = canManageProjectTeam(authUser, activeProject);
 
   return (
     <AppShell>
-      <div className="flex min-h-[calc(100vh-4rem)] flex-col gap-5">
-        <div className="flex flex-col justify-between gap-4 xl:flex-row xl:items-start">
+      <div className="flex min-h-0 min-w-0 max-w-full flex-col gap-4">
+        <div className="flex flex-col justify-between gap-3 sm:gap-4 lg:flex-row lg:items-start lg:gap-6">
           <div className="min-w-0">
             <Link className="mb-3 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground" href="/dashboard">
               <ArrowLeft className="h-4 w-4" />
@@ -438,6 +445,9 @@ export default function ProjectClient({ projectId }) {
             </Link>
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="truncate text-3xl font-semibold tracking-tight">{activeProject.name}</h1>
+              <Badge variant="outline" className="shrink-0 font-mono text-xs uppercase tracking-wide">
+                {activeProject.key}
+              </Badge>
               <Badge variant={activeProject.status === "active" ? "success" : "muted"}>{activeProject.status}</Badge>
             </div>
             <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
@@ -460,6 +470,10 @@ export default function ProjectClient({ projectId }) {
             <Button type="button" variant="outline" onClick={() => setAddColumnOpen(true)} title="Add a custom column">
               <Columns3 className="h-4 w-4" />
               Add column
+            </Button>
+            <Button type="button" variant="outline" onClick={() => setPeopleModalOpen(true)} title="View or manage project access">
+              <UserPlus className="h-4 w-4" />
+              {canEditTeam ? "Add people" : "People"}
             </Button>
             <Button type="button" onClick={() => openCreateTask(firstColumnId)}>
               <Plus className="h-4 w-4" />
@@ -484,6 +498,7 @@ export default function ProjectClient({ projectId }) {
 
         <KanbanBoard
           columns={boardColumns}
+          projectKey={activeProject.key}
           tasks={tasks}
           onCreateTask={openCreateTask}
           onMoveTask={moveTask}
@@ -497,6 +512,7 @@ export default function ProjectClient({ projectId }) {
           columnTitleMap={columnTitleMap}
           comments={selectedComments}
           defaultStatus={defaultStatus}
+          issueLabel={selectedIssueLabel}
           isCommenting={commenting}
           isDeleting={deleting}
           isOpen={dialogOpen}
@@ -508,6 +524,18 @@ export default function ProjectClient({ projectId }) {
           statusColumns={boardColumns}
           task={selectedTask}
           users={projectUsers}
+        />
+
+        <AddPeopleModal
+          currentUser={authUser}
+          open={peopleModalOpen}
+          project={activeProject}
+          onError={setError}
+          onOpenChange={setPeopleModalOpen}
+          onProjectUpdated={(project) => {
+            setActiveProject(project);
+            upsertProject(project);
+          }}
         />
 
         <Dialog open={addColumnOpen} onOpenChange={setAddColumnOpen}>

@@ -13,19 +13,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
 import { useAuthStore } from "@/store/auth-store";
 
-const schema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters."),
-  email: z.string().email("Enter a valid email."),
-  password: z.string().min(8, "Password must be at least 8 characters."),
-  confirmPassword: z.string().min(8, "Confirm password must be at least 8 characters."),
-  role: z.enum(["admin", "manager", "member"])
-}).refine((values) => values.password === values.confirmPassword, {
-  message: "Passwords do not match.",
-  path: ["confirmPassword"]
-});
+const schema = z
+  .object({
+    name: z.string().min(2, "Name must be at least 2 characters."),
+    email: z.string().email("Enter a valid email."),
+    password: z.string().min(8, "Password must be at least 8 characters."),
+    confirmPassword: z.string().min(8, "Confirm password must be at least 8 characters.")
+  })
+  .refine((values) => values.password === values.confirmPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"]
+  });
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -37,8 +37,7 @@ export default function RegisterPage() {
       name: "",
       email: "",
       password: "",
-      confirmPassword: "",
-      role: "member"
+      confirmPassword: ""
     }
   });
 
@@ -70,7 +69,7 @@ export default function RegisterPage() {
             <FolderKanban className="h-5 w-5" />
           </div>
           <CardTitle>Create your account</CardTitle>
-          <CardDescription>Join the internal workspace and start managing projects.</CardDescription>
+          <CardDescription>Join the workspace — access is per project (like Jira), not a global admin role.</CardDescription>
         </CardHeader>
         <CardContent>
           <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
@@ -96,14 +95,6 @@ export default function RegisterPage() {
               {form.formState.errors.confirmPassword && (
                 <p className="text-xs text-destructive">{form.formState.errors.confirmPassword.message}</p>
               )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
-              <Select id="role" {...form.register("role")}>
-                <option value="member">Member</option>
-                <option value="manager">Manager</option>
-                <option value="admin">Admin</option>
-              </Select>
             </div>
             <Button className="w-full" type="submit" disabled={isLoading}>
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}

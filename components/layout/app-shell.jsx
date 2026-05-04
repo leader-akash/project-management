@@ -26,9 +26,9 @@ export function AppShell({ children }) {
   };
 
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[260px_1fr]">
-      <aside className="hidden border-r bg-card/80 backdrop-blur lg:flex lg:flex-col">
-        <div className="flex h-16 items-center gap-3 px-5">
+    <div className="flex h-dvh max-h-dvh w-full max-w-full min-w-0 flex-col overflow-hidden">
+      <aside className="hidden h-dvh w-[260px] flex-col overflow-hidden border-r bg-card shadow-sm lg:fixed lg:left-0 lg:top-0 lg:z-30 lg:flex">
+        <div className="flex h-14 shrink-0 items-center gap-3 px-4">
           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <FolderKanban className="h-5 w-5" />
           </div>
@@ -37,8 +37,8 @@ export function AppShell({ children }) {
             <p className="text-xs text-muted-foreground">Internal workspace</p>
           </div>
         </div>
-        <Separator />
-        <nav className="flex-1 space-y-1 p-3">
+        <Separator className="shrink-0" />
+        <nav className="shrink-0 space-y-1 p-3">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -57,7 +57,7 @@ export function AppShell({ children }) {
             );
           })}
         </nav>
-        <div className="border-t p-3">
+        <div className="mt-auto shrink-0 border-t bg-muted/30 p-3">
           <div className="mb-3 flex items-center gap-3 rounded-md bg-muted/60 p-3">
             <Avatar name={user?.name} />
             <div className="min-w-0 flex-1">
@@ -75,8 +75,8 @@ export function AppShell({ children }) {
         </div>
       </aside>
 
-      <div className="min-w-0">
-        <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b bg-background/85 px-4 backdrop-blur lg:hidden">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col lg:pl-[260px]">
+        <header className="z-20 flex h-14 shrink-0 items-center justify-between border-b bg-background px-4 backdrop-blur lg:hidden">
           <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
             <FolderKanban className="h-5 w-5 text-primary" />
             ProjectFlow
@@ -88,7 +88,9 @@ export function AppShell({ children }) {
             </Button>
           </div>
         </header>
-        <main className="min-h-screen p-4 sm:p-6 lg:p-8">{children}</main>
+        <main className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain p-4 sm:p-6 lg:p-6">
+          {children}
+        </main>
       </div>
     </div>
   );

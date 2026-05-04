@@ -51,6 +51,7 @@ export function TaskDialog({
   columnTitleMap = {},
   comments,
   defaultStatus,
+  issueLabel,
   isCommenting,
   isDeleting,
   isOpen,
@@ -110,7 +111,14 @@ export function TaskDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{task ? "Edit task" : "Create task"}</DialogTitle>
+          <DialogTitle className="flex flex-wrap items-center gap-2">
+            {issueLabel ? (
+              <span className="rounded-md border bg-muted px-2 py-0.5 font-mono text-xs font-semibold uppercase tracking-tight text-muted-foreground">
+                {issueLabel}
+              </span>
+            ) : null}
+            <span>{task ? "Edit task" : "Create task"}</span>
+          </DialogTitle>
           <DialogDescription>
             {task ? "Changes are guarded by task version checks to prevent silent overwrites." : "New tasks are synced to every active board member."}
           </DialogDescription>

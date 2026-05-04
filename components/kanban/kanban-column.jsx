@@ -7,7 +7,7 @@ import { TaskCard, taskSortableId } from "@/components/kanban/task-card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export function KanbanColumn({ column, columns, tasks, onCreateTask, onOpenTask, onMoveTaskToColumn }) {
+export function KanbanColumn({ column, columns, projectKey, tasks, onCreateTask, onOpenTask, onMoveTaskToColumn }) {
   const { setNodeRef, isOver } = useDroppable({
     id: column.id,
     data: {
@@ -20,7 +20,7 @@ export function KanbanColumn({ column, columns, tasks, onCreateTask, onOpenTask,
     <section
       ref={setNodeRef}
       className={cn(
-        "flex min-h-[32rem] min-w-[18rem] flex-1 flex-col rounded-lg border bg-muted/35 transition",
+        "flex min-h-[32rem] w-72 shrink-0 flex-col rounded-lg border bg-muted/35 transition",
         isOver && "border-primary/60 bg-primary/5 shadow-sm"
       )}
     >
@@ -42,6 +42,7 @@ export function KanbanColumn({ column, columns, tasks, onCreateTask, onOpenTask,
               key={taskSortableId(task)}
               task={task}
               columns={columns}
+              projectKey={projectKey}
               onMoveToColumn={onMoveTaskToColumn}
               onOpen={onOpenTask}
             />

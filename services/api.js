@@ -63,7 +63,18 @@ export const authApi = {
 };
 
 export const usersApi = {
-  list: (search = "") => request(`/users${search ? `?search=${encodeURIComponent(search)}` : ""}`)
+  /**
+   * @param {string | { search?: string; limit?: number }} [searchOrParams]
+   * @returns {Promise<{ items: unknown[] }>}
+   */
+  list: (searchOrParams = "") => {
+    const params = typeof searchOrParams === "string" ? { search: searchOrParams } : searchOrParams || {};
+    const searchParams = new URLSearchParams();
+    if (params.search) searchParams.set("search", params.search);
+    if (params.limit != null) searchParams.set("limit", String(params.limit));
+    const suffix = searchParams.toString() ? `?${searchParams.toString()}` : "";
+    return request(`/users${suffix}`);
+  }
 };
 
 export const projectsApi = {
